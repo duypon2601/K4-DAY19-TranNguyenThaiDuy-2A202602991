@@ -37,6 +37,8 @@ PRICES_PER_M = {
     "text-embedding-3-small": (0.02, 0.0),
     "text-embedding-3-large": (0.13, 0.0),
     "gemini-2.5-flash-lite": (0.10, 0.40),
+    "gemini-3.1-flash-lite": (0.25, 1.50),
+    "gemini-3.5-flash-lite": (0.30, 2.50),
     # Gemini embedding pricing intentionally omitted: the current pricing page does not list gemini-embedding-001.
     "claude-opus-5-5": (4.00, 20.00),
     "claude-sonnet-5-5": (2.00, 10.00),
@@ -89,7 +91,8 @@ def _openai_client(provider: str):
     from openai import OpenAI
 
     cfg = PROVIDERS[provider]
-    return OpenAI(api_key=os.environ[cfg["key"]], base_url=cfg["base_url"])
+    # max_retries: free tiers throttle hard (Gemini: 100 embeddings/minute); the SDK backs off on 429 and retries.
+    return OpenAI(api_key=os.environ[cfg["key"]], base_url=cfg["base_url"], max_retries=8)
 
 class MeteredLLM:
     """`chat` and `embed` are drop-in `llm_fn` / `embedding_fn`; `usage` accumulates across calls."""
